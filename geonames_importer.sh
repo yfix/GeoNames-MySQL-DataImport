@@ -34,6 +34,8 @@ usage() {
 download_geonames_data() {
 	echo "Downloading GeoNames.org data ..." 
 
+	orig_dir=$(pwd)
+	mkdir -p ./data/
 	cd ./data/
 
 	wget -N http://download.geonames.org/export/dump/admin1CodesASCII.txt
@@ -53,18 +55,23 @@ download_geonames_data() {
 	fi
 	if [ ! -f hierarchy.txt ]; then
 		wget -N http://download.geonames.org/export/dump/hierarchy.zip
-		unzip -o hierarchy.zip -d ./data/
+		unzip -o hierarchy.zip
 		rm hierarchy.zip
 	fi
-	if [ ! -f ./postalCodes/allCountries.txt ]; then
-		cd ./postalCodes/
+	cd $orig_dir
+	mkdir -p ./data/postalCodes/
+	cd ./data/postalCodes/
+	if [ ! -f allCountries.txt ]; then
 		wget -N http://download.geonames.org/export/zip/allCountries.zip
 	    unzip -o allCountries.zip
 		rm allCountries.zip
 	fi
+
+	cd $orig_dir
 }
 
 sort_geonames_data() {
+	orig_dir=$(pwd)
 	cd ./data/
 
 	sort -n allCountries.txt -o allCountries_sorted.txt
@@ -77,6 +84,8 @@ sort_geonames_data() {
 
 	sort -n allCountries.txt -o allCountries_sorted.txt
 	mv -vf allCountries_sorted.txt allCountries.txt
+
+	cd $orig_dir
 }
 
 if [ $# -lt 1 ]; then
@@ -158,12 +167,17 @@ case "$action" in
     ;;
 
     all)
+		download_geonames_data;
+
         echo "Creating database $db_name..."
         $mysql -Bse "CREATE DATABASE IF NOT EXISTS $db_name DEFAULT CHARACTER SET utf8;"
 
         echo "Creating geonames tables into $db_name..."
         $mysql -Bse "USE $db_name;"
         $mysql $db_name < ./sql/geonames_db_struct.sql
+
+        echo "Truncating \"geonames\" database"
+        $mysql $db_name < ./sql/geonames_truncate_db.sql
 
         echo "Importing geonames dumps into database $db_name"
         $mysql --local-infile=1 $db_name < ./sql/geonames_import_data.sql
