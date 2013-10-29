@@ -16,6 +16,7 @@ usage() {
     echo " Where <action> can be one of this: "
     echo "    all      			Do all required actions at once."
 	echo "    download-data     Downloads the last packages of data available in GeoNames."
+	echo "    sort-data     	Sort downloaded data, remove uneeded feature_classes (not A or P)."
     echo "    create-db         Creates the mysql database structure."
     echo "    create-tables     Creates the mysql tables with no data."
     echo "    import-dumps      Imports geonames data into db. A database is previously needed for this to work."
@@ -77,7 +78,8 @@ sort_geonames_data() {
 	cd ./data/
 
 	sort -n allCountries.txt -o allCountries_sorted.txt
-	mv -vf allCountries_sorted.txt allCountries.txt
+	egrep "\s(A|P)\s" allCountries_sorted.txt > allCountries.txt
+#	mv -vf allCountries_sorted.txt allCountries.txt
 
 	sort -n alternateNames.txt -o alternateNames_sorted.txt
 	mv -vf alternateNames_sorted.txt alternateNames.txt
