@@ -8,9 +8,11 @@
 db_name="geonames"
 
 usage() {
+	echo ""
+	echo "Example: " $0 " -a all"
+	echo ""
 	echo "Usage: " $0 "-a <action> -u <user> -p <password> -h <host> -r <port> -n <db_name>"
 	echo
-	echo " This is to operate with the geographic database"
     echo " Where <action> can be one of this: "
     echo "    all      			Do all required actions at once."
 	echo "    download-data     Downloads the last packages of data available in GeoNames."
@@ -142,13 +144,17 @@ case "$action" in
 
     create-tables)
         echo "Creating geonames tables into $db_name..."
-        $mysql -Bse "USE $db_name;"
         $mysql $db_name < ./sql/geonames_db_struct.sql
     ;;
 
     import-dumps)
         echo "Importing geonames dumps into database $db_name"
         $mysql --local-infile=1 $db_name < ./sql/geonames_import_data.sql
+    ;;
+
+    create-indexes)
+        echo "Creating indexes for $db_name..."
+        $mysql $db_name < ./sql/geonames_add_indexes.sql
     ;;
    
     drop-db)
@@ -173,7 +179,6 @@ case "$action" in
         $mysql -Bse "CREATE DATABASE IF NOT EXISTS $db_name DEFAULT CHARACTER SET utf8;"
 
         echo "Creating geonames tables into $db_name..."
-        $mysql -Bse "USE $db_name;"
         $mysql $db_name < ./sql/geonames_db_struct.sql
 
         echo "Truncating \"geonames\" database"
@@ -181,6 +186,9 @@ case "$action" in
 
         echo "Importing geonames dumps into database $db_name"
         $mysql --local-infile=1 $db_name < ./sql/geonames_import_data.sql
+
+        echo "Creating indexes for $db_name..."
+        $mysql $db_name < ./sql/geonames_add_indexes.sql
 	;;
 esac
 

@@ -1,4 +1,4 @@
-CREATE TABLE geo_geoname (
+CREATE TABLE IF NOT EXISTS geo_geoname (
     id              INT,
     name            VARCHAR(200)    COMMENT 'name of geographical point (utf8)',
     name_ascii      VARCHAR(200)    COMMENT 'name of geographical point in plain ascii characters',
@@ -22,7 +22,7 @@ CREATE TABLE geo_geoname (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_alternate_name (
+CREATE TABLE IF NOT EXISTS geo_alternate_name (
     id                  INT,
     geoname_id          INT,
     language_code       VARCHAR(7),
@@ -35,7 +35,7 @@ CREATE TABLE geo_alternate_name (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_country (
+CREATE TABLE IF NOT EXISTS geo_country (
     code                    CHAR(2),
     iso_alpha3              CHAR(3),
     iso_numeric             INTEGER,
@@ -59,7 +59,7 @@ CREATE TABLE geo_country (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_language (
+CREATE TABLE IF NOT EXISTS geo_language (
     code            VARCHAR(50)     COMMENT 'ISO 639-1 code. Most commonly used code',
     iso_639_3       CHAR(4)         COMMENT 'ISO 639-3 code',
     iso_639_2       VARCHAR(50)     COMMENT 'ISO 639-2 code',
@@ -77,7 +77,7 @@ CREATE TABLE geo_admin1 (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_admin2 (
+CREATE TABLE IF NOT EXISTS geo_admin2 (
     code        CHAR(15),
     name        TEXT,
     name_ascii  TEXT,
@@ -86,7 +86,7 @@ CREATE TABLE geo_admin2 (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_hierarchy (
+CREATE TABLE IF NOT EXISTS geo_hierarchy (
     id              INT NOT NULL AUTO_INCREMENT,
     parent_id       INT,
     child_id        INT,
@@ -95,7 +95,7 @@ CREATE TABLE geo_hierarchy (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_feature (
+CREATE TABLE IF NOT EXISTS geo_feature (
     code        CHAR(7)         COMMENT 'see http://www.geonames.org/export/codes.html',
     name        VARCHAR(200),
     description TEXT,
@@ -103,7 +103,7 @@ CREATE TABLE geo_feature (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_timezone (
+CREATE TABLE IF NOT EXISTS geo_timezone (
     id              VARCHAR(100),
     country_code    VARCHAR(5),
     gmt_offset      DECIMAL(3, 1)   COMMENT 'GMT offset on 1st of January',
@@ -113,7 +113,7 @@ CREATE TABLE geo_timezone (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_continent (
+CREATE TABLE IF NOT EXISTS geo_continent (
     code        CHAR(2),
     name        VARCHAR(20),
     geoname_id  INT,
@@ -121,7 +121,7 @@ CREATE TABLE geo_continent (
 ) CHARACTER SET utf8;
 
 
-CREATE TABLE geo_postal_code (
+CREATE TABLE IF NOT EXISTS geo_postal_code (
     postal_code     VARCHAR(20),
     country_code    CHAR(2),
     name            VARCHAR(180),
