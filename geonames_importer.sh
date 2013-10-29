@@ -1,24 +1,18 @@
 #!/bin/bash
 
 # Default values for database variables.
-dbhost="localhost"
-dbport=3306
-dbname="geonames"
-
-logo() {
-    echo
-	echo "================================================================================================"
-	echo "                           G E O N A M E S    D A T A    I M P O R T E R                        "
-	echo "================================================================================================"
-}
+#db_host="localhost"
+#db_port=3306
+#db_user="root"
+#db_pswd="123456"
+db_name="geonames"
 
 usage() {
-	logo
-	echo
-	echo "Usage: " $0 "-a <action> -u <user> -p <password> -h <host> -r <port> -n <dbname>"
+	echo "Usage: " $0 "-a <action> -u <user> -p <password> -h <host> -r <port> -n <db_name>"
 	echo
 	echo " This is to operate with the geographic database"
     echo " Where <action> can be one of this: "
+    echo "    all      			Do all required actions at once."
 	echo "    download-data     Downloads the last packages of data available in GeoNames."
     echo "    create-db         Creates the mysql database structure."
     echo "    create-tables     Creates the mysql tables with no data."
@@ -32,7 +26,7 @@ usage() {
 	echo "    -p <password> User password to access database server."
 	echo "    -h <host>     Data Base Server address (default: localhost)."
 	echo "    -r <port>     Data Base Server Port (default: 3306)"
-	echo "    -n <dbname>   Data Base Name for the geonames.org data (default: geonames)"
+	echo "    -n <db_name>   Data Base Name for the geonames.org data (default: geonames)"
 	echo "================================================================================================"
     exit -1
 }
@@ -40,31 +34,49 @@ usage() {
 download_geonames_data() {
 	echo "Downloading GeoNames.org data ..." 
 
-	wget -N http://download.geonames.org/export/dump/admin1CodesASCII.txt -O ./data/admin1CodesASCII.txt
-	wget -N http://download.geonames.org/export/dump/admin2Codes.txt -O ./data/admin2Codes.txt
-	wget -N http://download.geonames.org/export/dump/featureCodes_en.txt -O ./data/featureCodes_en.txt
-	wget -N http://download.geonames.org/export/dump/timeZones.txt -O ./data/timeZones.txt
-	wget -N http://download.geonames.org/export/dump/countryInfo.txt -O ./data/countryInfo.txt
-	if [ ! -f ./data/allCountries.txt ]; then
-		wget -N http://download.geonames.org/export/dump/allCountries.zip -O ./data/allCountries.zip
-	    unzip -o ./data/allCountries.zip -d ./data/
-	    rm ./data/allCountries.zip
+	cd ./data/
+
+	wget -N http://download.geonames.org/export/dump/admin1CodesASCII.txt
+	wget -N http://download.geonames.org/export/dump/admin2Codes.txt
+	wget -N http://download.geonames.org/export/dump/featureCodes_en.txt
+	wget -N http://download.geonames.org/export/dump/timeZones.txt
+	wget -N http://download.geonames.org/export/dump/countryInfo.txt
+	if [ ! -f allCountries.txt ]; then
+		wget -N http://download.geonames.org/export/dump/allCountries.zip
+	    unzip -o allCountries.zip
+	    rm allCountries.zip
 	fi
-	if [ ! -f ./data/alternateNames.txt ]; then
-		wget -N http://download.geonames.org/export/dump/alternateNames.zip -O ./data/alternateNames.zip
-		unzip -o ./data/alternateNames.zip -d ./data/
-		rm ./data/alternateNames.zip
+	if [ ! -f alternateNames.txt ]; then
+		wget -N http://download.geonames.org/export/dump/alternateNames.zip
+		unzip -o alternateNames.zip
+		rm alternateNames.zip
 	fi
-	if [ ! -f ./data/hierarchy.txt ]; then
-		wget -N http://download.geonames.org/export/dump/hierarchy.zip -O ./data/hierarchy.zip
-		unzip -o ./data/hierarchy.zip -d ./data/
-		rm ./data/hierarchy.zip
+	if [ ! -f hierarchy.txt ]; then
+		wget -N http://download.geonames.org/export/dump/hierarchy.zip
+		unzip -o hierarchy.zip -d ./data/
+		rm hierarchy.zip
 	fi
-	if [ ! -f ./data/postalCodes/allCountries.txt ]; then
-		wget -N http://download.geonames.org/export/zip/allCountries.zip -O ./data/postalCodes/allCountries.zip
-	    unzip -o ./data/postalCodes/allCountries.zip -d ./data/postalCodes/
-		rm ./data/postalCodes/allCountries.zip
+	if [ ! -f ./postalCodes/allCountries.txt ]; then
+		cd ./postalCodes/
+		wget -N http://download.geonames.org/export/zip/allCountries.zip
+	    unzip -o allCountries.zip
+		rm allCountries.zip
 	fi
+}
+
+sort_geonames_data() {
+	cd ./data/
+
+	sort -n allCountries.txt -o allCountries_sorted.txt
+	mv -vf allCountries_sorted.txt allCountries.txt
+
+	sort -n alternateNames.txt -o alternateNames_sorted.txt
+	mv -vf alternateNames_sorted.txt alternateNames.txt
+
+	cd ./postalCodes/
+
+	sort -n allCountries.txt -o allCountries_sorted.txt
+	mv -vf allCountries_sorted.txt allCountries.txt
 }
 
 if [ $# -lt 1 ]; then
@@ -72,19 +84,17 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-logo
-
 # Deals with operation mode 2 (Database issues...)
 # Parses command line parameters.
 while getopts "a:u:p:h:r:n:" opt; 
 do
     case $opt in
         a) action=$OPTARG ;;
-        u) dbusername=$OPTARG ;;
-        p) dbpassword=$OPTARG ;;
-        h) dbhost=$OPTARG ;;
-        r) dbport=$OPTARG ;;
-        n) dbname=$OPTARG ;;
+        u) db_user=$OPTARG ;;
+        p) db_pswd=$OPTARG ;;
+        h) db_host=$OPTARG ;;
+        r) db_port=$OPTARG ;;
+        n) db_name=$OPTARG ;;
     esac
 done
 
@@ -94,55 +104,70 @@ case $action in
         download_geonames_data
         exit 0
     ;;
+    sort-data)
+        sort_geonames_data
+        exit 0
+    ;;
 esac
 
-if [ -z $dbusername ]; then
-    echo "No user name provided for accessing the database. Please write some value in parameter -u..."
-    exit 1
+mysql="mysql -v"
+if [ ! -z "$db_host" ]; then
+	mysql=$mysql" -h "$db_host;
+fi
+if [ ! -z "$db_port" ]; then
+	mysql=$mysql" -P "$db_port;
+fi
+if [ ! -z "$db_user" ]; then
+	mysql=$mysql" -u "$db_user;
+fi
+if [ ! -z "$db_pswd" ]; then
+	mysql=$mysql" -p"$db_pswd;
 fi
 
-echo "Database parameters being used..."
-echo "Action: " $action
-echo "Username: " $dbusername
-echo "Password: " $dbpassword
-echo "DB Host: " $dbhost
-echo "DB Port: " $dbport
-echo "DB Name: " $dbname
-
-mysql="mysql -h $dbhost -P $dbport -u $dbusername -p$dbpassword"
-
 case "$action" in
+
     create-db)
-        echo "Creating database $dbname..."
-        $mysql -Bse "CREATE DATABASE IF NOT EXISTS $dbname DEFAULT CHARACTER SET utf8;"
+        echo "Creating database $db_name..."
+        $mysql -Bse "CREATE DATABASE IF NOT EXISTS $db_name DEFAULT CHARACTER SET utf8;"
     ;;
 
     create-tables)
-        echo "Creating geonames tables into $dbname..."
-        $mysql -Bse "USE $dbname;"
-        $mysql $dbname < ./sql/geonames_db_struct.sql
+        echo "Creating geonames tables into $db_name..."
+        $mysql -Bse "USE $db_name;"
+        $mysql $db_name < ./sql/geonames_db_struct.sql
     ;;
 
     import-dumps)
-        echo "Importing geonames dumps into database $dbname"
-        $mysql --local-infile=1 $dbname < ./sql/geonames_import_data.sql
+        echo "Importing geonames dumps into database $db_name"
+        $mysql --local-infile=1 $db_name < ./sql/geonames_import_data.sql
     ;;
    
     drop-db)
-        echo "Dropping $dbname database"
-        $mysql -Bse "DROP DATABASE IF EXISTS $dbname;"
+        echo "Dropping $db_name database"
+        $mysql -Bse "DROP DATABASE IF EXISTS $db_name;"
     ;;
         
     truncate-db)
         echo "Truncating \"geonames\" database"
-        $mysql $dbname < ./sql/geonames_truncate_db.sql
+        $mysql $db_name < ./sql/geonames_truncate_db.sql
     ;;
 
     split-tables)
         echo "Splitting tables by geo entities"
-        $mysql $dbname < ./sql/geonames_split_tables.sql
+        $mysql $db_name < ./sql/geonames_split_tables.sql
     ;;
 
+    all)
+        echo "Creating database $db_name..."
+        $mysql -Bse "CREATE DATABASE IF NOT EXISTS $db_name DEFAULT CHARACTER SET utf8;"
+
+        echo "Creating geonames tables into $db_name..."
+        $mysql -Bse "USE $db_name;"
+        $mysql $db_name < ./sql/geonames_db_struct.sql
+
+        echo "Importing geonames dumps into database $db_name"
+        $mysql --local-infile=1 $db_name < ./sql/geonames_import_data.sql
+	;;
 esac
 
 if [ $? == 0 ]; then 
