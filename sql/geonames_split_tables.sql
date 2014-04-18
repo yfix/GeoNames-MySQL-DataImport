@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS geo_city (
 
 TRUNCATE TABLE geo_city;
 
+#CREATE OR REPLACE VIEW `geo_city_view_ua_uk` AS
 INSERT INTO geo_city
 SELECT
     g.id,
@@ -41,11 +42,13 @@ WHERE
     AND g.feature_code IN('PPL','PPLA','PPLC')
 	AND a.language_code = 'UK'
 GROUP BY g.id
+#ORDER BY a.name COLLATE utf8_unicode_ci ASC
 ;
 
 
 
 # Get administration 1 LEVEL FROM Ukraine
+# SELECT * FROM `geo_geoname` WHERE `country` = 'UA' AND `feature_class` = 'A' AND `feature_code` IN ('ADM1')
 /*
 SELECT a.name, g.*
 FROM geo_geoname AS g
@@ -55,7 +58,7 @@ WHERE h.parent_id = (SELECT id FROM geo_geoname WHERE feature_code = 'PCLI' AND 
   AND h.feature_code = 'ADM'
   AND a.language_code = 'UK'
 GROUP BY g.id
-ORDER BY a.name ASC
+ORDER BY a.name ASC COLLATE utf8_unicode_ci ASC
 */
 
 # Get top cities by population FROM Ukraine
